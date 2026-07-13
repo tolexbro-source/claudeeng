@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+/* ธีมหลัก NPS-Store — โทนขาว/เทา/ดำ ฟอนต์หนาสไตล์สปอร์ต */
+@theme {
+  --font-sans: "Inter", "Noto Sans Thai", ui-sans-serif, system-ui, sans-serif;
+
+  /* ===== 🎨 THEME COLORS — ปรับตามโลโก้ NPS แล้ว (พื้นกรมท่าเข้ม + เขียวมะนาว) =====
+     แก้ค่าตรงนี้แล้วสีจะเปลี่ยนทั้งเว็บทันที (ปุ่ม, active state, badge, จุดเน้น ฯลฯ)
+     ใช้งานในโค้ดผ่านคลาส Tailwind: bg-primary, text-primary, border-primary,
+     bg-primary-dark (hover), bg-secondary, text-accent, bg-accent เป็นต้น */
+  --color-primary: #0e2229;        /* สีหลักของแบรนด์ — กรมท่าเข้มจากพื้นโลโก้ ใช้กับปุ่ม CTA, active state */
+  --color-primary-dark: #060f12;   /* สีหลักตอน hover/active (เข้มขึ้นจาก primary) */
+  --color-secondary: #55707a;      /* สีรอง — โทนเทาอมเขียวหม่นจากพื้นโลโก้ ใช้กับข้อความ/ไอคอนรอง */
+  --color-accent: #6fa82a;         /* สีเน้น — เขียวมะนาวจากตัวอักษรโลโก้ (เข้มขึ้นเล็กน้อยจากโลโก้จริงเพื่อให้ตัวหนังสือ/ป้ายอ่านง่ายบนพื้นขาว) ใช้กับปุ่ม CTA หลักทั้งเว็บ, ป้าย Sale, ราคาลด, แจ้งเตือนออเดอร์ใหม่ */
+  --color-accent-dark: #5c8f24;    /* สีเน้นตอน hover/active (เข้มขึ้นจาก accent) */
+}
+
+/* ===== ฟอนต์ลาว Phetsalath OT =====
+   ลำดับการใช้: 1) ฟอนต์ที่ติดตั้งในเครื่องผู้ใช้ 2) ไฟล์ .ttf ใน public/fonts/
+   3) ฟอนต์ "Phetsarath" จาก Google Fonts (โหลดใน index.html) */
+@font-face {
+  font-family: "Phetsalath OT";
+  src: local("Phetsalath OT"), local("Phetsarath OT"),
+       url("/fonts/PhetsalathOT.ttf") format("truetype");
+  font-display: swap;
+}
+
+/* โหมดภาษาลาว: ใช้ฟอนต์ Phetsalath OT และตัวหนาทั้งเว็บ (ตามสเปก) */
+html.lang-lo body {
+  font-family: "Phetsalath OT", "Phetsarath", "Noto Sans Lao", "Inter", sans-serif;
+  font-weight: 700;
+}
+html.lang-lo .font-medium { font-weight: 700; }
+
+body {
+  @apply bg-white text-neutral-900 antialiased;
+}
+
+/* ซ่อน scrollbar แนวนอน (ยังเลื่อนได้ปกติ) */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* แอนิเมชัน Toast แจ้งเตือนออเดอร์ใหม่ (เลื่อนเข้าจากขวา) */
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
