@@ -62,7 +62,7 @@ export const translations = {
     login_error_FB_CANCELLED: 'Facebook sign-in was cancelled',
     login_error_UNKNOWN: 'Something went wrong, please try again',
     login_hello: 'Hi, {name}',
-    admin_login_title: 'Admin Sign In', admin_login_username: 'Email', admin_login_password: 'Password',
+    admin_login_title: 'Admin Sign In', admin_login_username: 'Username', admin_login_password: 'Password',
     admin_login_submit: 'Sign In', admin_login_error: 'Invalid username or password', admin_logout: 'Log Out',
   },
 
@@ -127,7 +127,7 @@ export const translations = {
     login_error_FB_CANCELLED: 'ยกเลิกการเข้าสู่ระบบด้วย Facebook',
     login_error_UNKNOWN: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
     login_hello: 'สวัสดี, {name}',
-    admin_login_title: 'เข้าสู่ระบบแอดมิน', admin_login_username: 'อีเมล', admin_login_password: 'รหัสผ่าน',
+    admin_login_title: 'เข้าสู่ระบบแอดมิน', admin_login_username: 'ชื่อผู้ใช้', admin_login_password: 'รหัสผ่าน',
     admin_login_submit: 'เข้าสู่ระบบ', admin_login_error: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง', admin_logout: 'ออกจากระบบ',
   },
 
@@ -192,7 +192,7 @@ export const translations = {
     login_error_FB_CANCELLED: 'ຍົກເລີກການເຂົ້າສູ່ລະບົບດ້ວຍ Facebook',
     login_error_UNKNOWN: 'ມີຂໍ້ຜິດພາດເກີດຂຶ້ນ ກະລຸນາລອງໃໝ່',
     login_hello: 'ສະບາຍດີ, {name}',
-    admin_login_title: 'ເຂົ້າສູ່ລະບົບແອດມິນ', admin_login_username: 'ອີເມວ', admin_login_password: 'ລະຫັດຜ່ານ',
+    admin_login_title: 'ເຂົ້າສູ່ລະບົບແອດມິນ', admin_login_username: 'ຊື່ຜູ້ໃຊ້', admin_login_password: 'ລະຫັດຜ່ານ',
     admin_login_submit: 'ເຂົ້າສູ່ລະບົບ', admin_login_error: 'ຊື່ຜູ້ໃຊ້ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ', admin_logout: 'ອອກຈາກລະບົບ',
   },
 }

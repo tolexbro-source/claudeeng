@@ -5,7 +5,7 @@ import { useCurrency } from '../context/CurrencyContext'
 
 /**
  * Toast แจ้งเตือนแบบ Real-time เมื่อมีออเดอร์ใหม่เข้ามา — เด้งขึ้นมุมขวาบนทันทีที่ลูกค้ากด Place Order
- * ข้อมูลมาจาก Supabase Realtime subscription ใน StoreContext.jsx (ทำงานได้แม้ลูกค้าอยู่คนละเครื่อง/คนละเว็บแอปกับแอดมิน)
+ * ข้อมูลมาจาก WebSocket subscription ใน StoreContext.jsx (ทำงานได้แม้ลูกค้าอยู่คนละเครื่อง/คนละเว็บแอปกับแอดมิน)
  */
 export default function OrderToast() {
   const { orders } = useStore()

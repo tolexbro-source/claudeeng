@@ -21,7 +21,7 @@ export default function CheckoutModal({ open, onClose }) {
   const { cart, cartTotal, placeOrder } = useStore()
   const { t } = useLang()
   const { formatPrice } = useCurrency()
-  const { customer, userId } = useAuth()
+  const { customer } = useAuth()
   const [step, setStep] = useState(0) // 0..2 และ 'success' เมื่อสั่งซื้อสำเร็จ
   const [form, setForm] = useState(EMPTY_FORM)
   const [orderId, setOrderId] = useState('')
@@ -29,10 +29,10 @@ export default function CheckoutModal({ open, onClose }) {
   const [placing, setPlacing] = useState(false)
   const [placeError, setPlaceError] = useState(false)
 
-  // ล็อกอินอยู่แล้ว → เติมชื่อ/อีเมลให้อัตโนมัติตอนเปิด Checkout ครั้งแรก
+  // ล็อกอินอยู่แล้ว → เติมชื่อให้อัตโนมัติตอนเปิด Checkout ครั้งแรก (อีเมลบัญชีเป็นค่าภายใน ไม่ใช่อีเมลจริงของลูกค้า)
   useEffect(() => {
     if (open && customer) {
-      setForm((f) => (f.name || f.email ? f : { ...f, name: customer.name, email: customer.email }))
+      setForm((f) => (f.name ? f : { ...f, name: customer.name }))
     }
   }, [open, customer])
 
@@ -56,19 +56,17 @@ export default function CheckoutModal({ open, onClose }) {
     setForm(EMPTY_FORM)
   }
 
-  // ยืนยันคำสั่งซื้อ → บันทึกลง Supabase (ตาราง orders) และล้างตะกร้า
+  // ยืนยันคำสั่งซื้อ → บันทึกผ่าน backend API และล้างตะกร้า (ผูก userId ให้อัตโนมัติถ้าล็อกอินอยู่)
   const confirmOrder = async () => {
     const id = 'NPS-' + Date.now()
     setPlacing(true)
     setPlaceError(false)
     const result = await placeOrder({
       id,
-      createdAt: new Date().toISOString(),
       customer: { name: form.name, address: form.address, phone: form.phone, email: form.email },
       payment: form.payment,
-      items: cart.map(({ name, size, qty, price }) => ({ name, size, qty, price })),
+      items: cart.map(({ productId, name, size, qty, price }) => ({ productId, name, size, qty, price })),
       total: cartTotal,
-      userId,
     })
     setPlacing(false)
     if (!result.ok) {

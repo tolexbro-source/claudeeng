@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
-import { supabase } from '../lib/supabaseClient'
+import { api } from '../lib/apiClient'
 
 const StoreContext = createContext(null)
 const LS_CART_KEY = 'nps-store-cart-v1' // ตะกร้าเป็นสถานะชั่วคราวฝั่ง client เท่านั้น ไม่ต้องเก็บใน Database
@@ -14,16 +14,16 @@ function loadCart() {
   }
 }
 
-// ===== แปลงข้อมูลจากตาราง Supabase (snake_case) เป็นรูปแบบที่ใช้ในแอป (camelCase) =====
-const productFromRow = (r) => ({
-  id: r.id,
-  name: r.name,
-  category: r.category,
-  sizes: r.sizes,
-  price: r.price,
-  salePrice: r.sale_price,
-  image: r.image,
-  isNew: r.is_new,
+// ===== แปลงข้อมูลจาก API (Mongo _id) เป็นรูปแบบที่ใช้ในแอป =====
+const productFromApi = (p) => ({
+  id: p._id,
+  name: p.name,
+  category: p.category,
+  sizes: p.sizes,
+  price: p.price,
+  salePrice: p.salePrice,
+  image: p.image,
+  isNew: p.isNew,
 })
 
 export function StoreProvider({ children }) {
@@ -35,17 +35,12 @@ export function StoreProvider({ children }) {
     localStorage.setItem(LS_CART_KEY, JSON.stringify(cart))
   }, [cart])
 
-  // สินค้าอ่านได้จากทุกคน (ดู RLS policy "products_public_read" ใน supabase/schema.sql)
-  // การเพิ่ม/แก้ไข/ลบสินค้าทำได้เฉพาะฝั่ง Admin (ดูแอปแยกที่ nps-store-admin)
+  // สินค้าอ่านได้จากทุกคน — การเพิ่ม/แก้ไข/ลบสินค้าทำได้เฉพาะฝั่ง Admin (ดูแอปแยกที่ nps-store-admin)
   useEffect(() => {
-    supabase
-      .from('products')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .then(({ data }) => {
-        setProducts((data || []).map(productFromRow))
-        setProductsLoading(false)
-      })
+    api
+      .get('/api/products')
+      .then(({ products }) => setProducts((products || []).map(productFromApi)))
+      .finally(() => setProductsLoading(false))
   }, [])
 
   const addToCart = (product, size) => {
@@ -65,22 +60,21 @@ export function StoreProvider({ children }) {
 
   const removeFromCart = (key) => setCart((prev) => prev.filter((i) => i.key !== key))
 
-  // บันทึกออเดอร์ใหม่ลง Supabase — เปิดให้ทุกคนสั่งซื้อได้แม้ไม่ได้ล็อกอิน (ดู policy "orders_anyone_insert")
+  // บันทึกออเดอร์ใหม่ผ่าน backend API — เปิดให้ทุกคนสั่งซื้อได้แม้ไม่ได้ล็อกอิน
   const placeOrder = async (order) => {
-    const row = {
-      id: order.id,
-      customer_name: order.customer.name,
-      customer_address: order.customer.address,
-      customer_phone: order.customer.phone,
-      customer_email: order.customer.email,
-      payment: order.payment,
-      items: order.items,
-      total: order.total,
-      user_id: order.userId || null,
+    try {
+      await api.post('/api/orders', {
+        id: order.id,
+        customer: order.customer,
+        payment: order.payment,
+        items: order.items,
+        total: order.total,
+      })
+      setCart([])
+      return { ok: true }
+    } catch {
+      return { ok: false }
     }
-    const { error } = await supabase.from('orders').insert(row)
-    if (!error) setCart([])
-    return { ok: !error }
   }
 
   const value = useMemo(

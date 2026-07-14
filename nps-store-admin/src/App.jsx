@@ -47,7 +47,7 @@ export default function App() {
 
       <AdminDashboard />
 
-      {/* Toast แจ้งเตือนออเดอร์ใหม่แบบ Real-time (Supabase Realtime) */}
+      {/* Toast แจ้งเตือนออเดอร์ใหม่แบบ Real-time (WebSocket ผ่าน nps-store-server) */}
       <OrderToast />
     </div>
   )

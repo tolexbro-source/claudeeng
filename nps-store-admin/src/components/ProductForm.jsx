@@ -3,7 +3,7 @@ import { useStore } from '../context/StoreContext'
 import { useLang } from '../context/LanguageContext'
 import { catLabel } from '../i18n/translations'
 import { SIZE_PRESETS } from '../data/sizePresets'
-import { supabase } from '../lib/supabaseClient'
+import { uploadImage } from '../lib/apiClient'
 
 const EMPTY = { name: '', sizes: [], price: '', salePrice: '', image: '', isNew: false }
 
@@ -47,16 +47,16 @@ export default function ProductForm({ category, editing, onDone }) {
   const toggleSize = (s) =>
     setForm((f) => ({ ...f, sizes: f.sizes.includes(s) ? f.sizes.filter((x) => x !== s) : [...f.sizes, s] }))
 
-  // อัปโหลดรูปสินค้าขึ้น Supabase Storage bucket "product-images" (ดู supabase/schema.sql)
+  // อัปโหลดรูปสินค้าไปที่ nps-store-server (เก็บไว้ในโฟลเดอร์ uploads/<category>/)
   const handleImageFile = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
     setUploading(true)
-    const path = `${category}/${Date.now()}-${file.name}`
-    const { error } = await supabase.storage.from('product-images').upload(path, file)
-    if (!error) {
-      const { data } = supabase.storage.from('product-images').getPublicUrl(path)
-      setForm((f) => ({ ...f, image: data.publicUrl }))
+    try {
+      const { url } = await uploadImage(file, category)
+      setForm((f) => ({ ...f, image: url }))
+    } catch {
+      // อัปโหลดไม่สำเร็จ — ปล่อยรูปเดิม/ว่างไว้ ผู้ใช้ลองใหม่ได้
     }
     setUploading(false)
   }
@@ -128,7 +128,7 @@ export default function ProductForm({ category, editing, onDone }) {
         <input className={inputCls} type="number" min="0" placeholder={t('pf_sale')} value={form.salePrice} onChange={set('salePrice')} />
       </div>
 
-      {/* อัปโหลดรูปสินค้าขึ้น Supabase Storage — พร้อมพรีวิวรูปที่เลือก */}
+      {/* อัปโหลดรูปสินค้าไปที่ nps-store-server — พร้อมพรีวิวรูปที่เลือก */}
       <div>
         <p className="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-2">{t('pf_image')}</p>
         <div className="flex items-center gap-3">

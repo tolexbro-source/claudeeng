@@ -1,82 +1,57 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { supabase } from '../lib/supabaseClient'
+import { api, getToken, setToken } from '../lib/apiClient'
 
 const AuthContext = createContext(null)
 
-// แปลง error ของ Supabase Auth ให้ตรงกับคีย์คำแปลใน translations.js (login_error_*)
-function mapAuthError(error) {
-  const msg = error?.message || ''
-  if (msg.includes('already registered') || msg.includes('already exists')) return 'EMAIL_EXISTS'
-  if (msg.includes('Invalid login credentials')) return 'INVALID_CREDENTIALS'
-  return 'UNKNOWN'
-}
-
 export function AuthProvider({ children }) {
-  const [session, setSession] = useState(null)
+  const [user, setUser] = useState(null) // { id, username, isAdmin } | null
   const [loading, setLoading] = useState(true) // กำลังตรวจสอบ session ตอนเปิดแอปครั้งแรก
-  // profile: undefined = ยังไม่โหลด, null = โหลดแล้วแต่ไม่พบแถว, object = โหลดสำเร็จ { name, is_admin }
-  const [profile, setProfile] = useState(undefined)
 
-  // ตรวจ session ปัจจุบันตอนเปิดแอป + ฟังการเปลี่ยนแปลง (ล็อกอิน/ล็อกเอาต์/กลับจาก Facebook OAuth)
+  // ตรวจ token ที่เก็บไว้ตอนเปิดแอป — ถ้ามีและยังใช้ได้ ดึงข้อมูลผู้ใช้กลับมา
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
+    const token = getToken()
+    if (!token) {
       setLoading(false)
-    })
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession)
-    })
-    return () => listener.subscription.unsubscribe()
-  }, [])
-
-  // โหลดโปรไฟล์ (ชื่อ + สิทธิ์แอดมิน) ทุกครั้งที่ผู้ใช้ล็อกอินเปลี่ยน
-  useEffect(() => {
-    if (!session?.user) {
-      setProfile(null)
       return
     }
-    setProfile(undefined)
-    supabase
-      .from('profiles')
-      .select('name, is_admin')
-      .eq('id', session.user.id)
-      .single()
-      .then(({ data }) => setProfile(data ?? null))
-  }, [session])
+    api
+      .get('/api/auth/me')
+      .then(({ user }) => setUser(user))
+      .catch(() => setToken(null))
+      .finally(() => setLoading(false))
+  }, [])
 
-  const registerCustomer = async (name, email, password) => {
-    const { error } = await supabase.auth.signUp({ email, password, options: { data: { name } } })
-    if (error) return { ok: false, error: mapAuthError(error) }
-    return { ok: true }
+  const registerCustomer = async (username, password) => {
+    try {
+      const { token, user } = await api.post('/api/auth/register', { username, password })
+      setToken(token)
+      setUser(user)
+      return { ok: true }
+    } catch (error) {
+      return { ok: false, error: error.code || 'UNKNOWN' }
+    }
   }
 
-  const loginCustomer = async (email, password) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) return { ok: false, error: mapAuthError(error) }
-    return { ok: true }
+  const loginCustomer = async (username, password) => {
+    try {
+      const { token, user } = await api.post('/api/auth/login', { username, password })
+      setToken(token)
+      setUser(user)
+      return { ok: true }
+    } catch (error) {
+      return { ok: false, error: error.code || 'UNKNOWN' }
+    }
   }
 
-  // เข้าสู่ระบบด้วย Facebook — Supabase จัดการ OAuth ฝั่ง Server ให้ทั้งหมด
-  // ต้องเปิดใช้ Facebook provider ที่ Supabase Dashboard > Authentication > Providers ก่อน (ดู README)
-  const loginWithFacebook = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'facebook',
-      options: { redirectTo: window.location.origin },
-    })
-    // สำเร็จ = เบราว์เซอร์จะพาออกจากหน้านี้ไป Facebook ทันที แล้วเด้งกลับมาเองพร้อม session
-    if (error) return { ok: false, error: 'FB_NOT_CONFIGURED' }
-    return { ok: true }
+  const logoutCustomer = () => {
+    setToken(null)
+    setUser(null)
   }
 
-  const logoutCustomer = () => supabase.auth.signOut()
-
-  const customer = session?.user
-    ? { name: profile?.name || session.user.email, email: session.user.email }
-    : null
-  const userId = session?.user?.id || null
-
-  const profileReady = profile !== undefined
-  const isAdmin = profileReady && !!profile?.is_admin
+  const customer = user ? { name: user.username } : null
+  const userId = user?.id || null
+  const profileReady = !loading
+  const isAdmin = !!user?.isAdmin
 
   return (
     <AuthContext.Provider
@@ -88,7 +63,6 @@ export function AuthProvider({ children }) {
         isAdmin,
         registerCustomer,
         loginCustomer,
-        loginWithFacebook,
         logoutCustomer,
       }}
     >
@@ -97,4 +71,5 @@ export function AuthProvider({ children }) {
   )
 }
 
+// Hook สำหรับเรียกใช้ข้อมูลล็อกอินจาก Component ใดก็ได้
 export const useAuth = () => useContext(AuthContext)

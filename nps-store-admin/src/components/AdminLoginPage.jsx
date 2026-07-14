@@ -3,13 +3,13 @@ import { useAuth } from '../context/AuthContext'
 import { useLang } from '../context/LanguageContext'
 
 /**
- * หน้าเข้าสู่ระบบแอดมิน — ใช้บัญชี Supabase Auth เดียวกับลูกค้า
- * แต่ต้องมี profiles.is_admin = true (ตั้งค่าที่ Supabase Dashboard เท่านั้น ดู supabase/schema.sql)
+ * หน้าเข้าสู่ระบบแอดมิน — ใช้บัญชี Username/Password เดียวกับลูกค้า (nps-store-server)
+ * แต่ต้องมี isAdmin = true (ตั้งค่าผ่าน nps-store-server/src/setAdmin.js เท่านั้น)
  */
 export default function AdminLoginPage() {
   const { customer, isAdmin, profileReady, loginCustomer, logoutCustomer } = useAuth()
   const { t } = useLang()
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -26,7 +26,7 @@ export default function AdminLoginPage() {
     e.preventDefault()
     setSubmitting(true)
     setError('')
-    const result = await loginCustomer(email, password)
+    const result = await loginCustomer(username, password)
     setSubmitting(false)
     if (!result.ok) setError(t('admin_login_error'))
   }
@@ -42,7 +42,7 @@ export default function AdminLoginPage() {
           <h1 className="text-2xl font-black uppercase italic tracking-tight">{t('admin_login_title')}</h1>
         </div>
 
-        <input className={inputCls} type="email" placeholder={t('admin_login_username')} value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
+        <input className={inputCls} type="text" placeholder={t('admin_login_username')} value={username} onChange={(e) => setUsername(e.target.value)} required autoFocus autoCapitalize="off" autoCorrect="off" />
         <input className={inputCls} type="password" placeholder={t('admin_login_password')} value={password} onChange={(e) => setPassword(e.target.value)} required />
 
         {error && <p className="text-xs text-accent font-bold">{error}</p>}
