@@ -28,7 +28,7 @@ export default function AdminLoginPage() {
     setError('')
     const result = await loginCustomer(username, password)
     setSubmitting(false)
-    if (!result.ok) setError(t('admin_login_error'))
+    if (!result.ok) setError(t(`login_error_${result.error}`) || t('admin_login_error'))
   }
 
   const inputCls =
