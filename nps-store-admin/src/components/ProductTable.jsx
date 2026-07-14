@@ -47,7 +47,7 @@ export default function ProductTable({ category, onEdit }) {
                 </td>
                 <td className="px-5 py-3 text-neutral-600 whitespace-nowrap">{p.sizes.join(', ')}</td>
                 <td className="px-5 py-3 text-right whitespace-nowrap">
-                  {p.salePrice ? (
+                  {p.salePrice != null ? (
                     <>
                       <span className="font-bold text-accent">{formatPrice(p.salePrice)}</span>{' '}
                       <span className="text-xs text-neutral-400 line-through">{formatPrice(p.price)}</span>

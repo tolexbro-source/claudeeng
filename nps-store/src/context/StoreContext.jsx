@@ -4,7 +4,7 @@ import { api } from '../lib/apiClient'
 const StoreContext = createContext(null)
 const LS_CART_KEY = 'nps-store-cart-v1' // ตะกร้าเป็นสถานะชั่วคราวฝั่ง client เท่านั้น ไม่ต้องเก็บใน Database
 
-export const effectivePrice = (p) => Number(p.salePrice || p.price)
+export const effectivePrice = (p) => Number(p.salePrice ?? p.price)
 
 function loadCart() {
   try {
